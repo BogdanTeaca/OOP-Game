@@ -1,0 +1,100 @@
+===============================================================================
+
+  TEACA BOGDAN
+
+===============================================================================
+
+La tema am implementat si Bonus-ul care consta in aplicarea de Double Dispatch.
+
+===============================================================================
+
+    1. Organizare
+
+Am impartit clasele din proiect in 5 pachete principale: "main", "heroes",
+"spells", "effects" si "fileio", fiecare continand clase specifice acelui
+pachet.
+
+Pentru lucrul cu fisiere am utilizat API-ul pus la dispozitie pe pagina cu
+enuntul temei, iar fisierele din acest API sunt continute in pachetul "fileio".
+
+In pachetul "main" se afla clasa "Main" si enum-ul "LandType" ce retine toate
+tipurile de teren din jocul RPG. In pachetul "spells" am inclus clasele cu
+toate spell-urile eroilor si o clasa abstracta "Spell" care este mostenita de
+restul de clase din pachet. In pachetul "heroes" am inclus clasele cu toate
+tipurile de eroi din joc si clasa abstracta "Hero" care este mostenita de
+clasele de eroi din pachet. In pachetul "effects" am inclus clasele cu efectele
+over-time ale unor spell-uri (Ignite, Paralysis si Slam) si o clasa abstracta
+"EffectOverTime" care este mostenita de clasele din pachet.
+
+===============================================================================
+
+    2. Implementare
+
+Pentru citirea si scrierea in fisierele de input si output am utilizat API-ul
+de pe pagina cu enuntul temei. Astfel am citit din fisierul cu numele precizat
+de parametrul "args[0]" al metodei main datele despre dimensiunea terenului,
+tipurile de land-uri de pe teren, tipul eroilor si pozitia initiala a acestora,
+si miscarile lor pe harta de la fiecare runda.
+
+Am retinut tipurile de land-uri in enum-ul "LandType" din pachetul "main" si
+am implementat harta citita din fisier ca pe o matrice cu valori in acest enum.
+
+Am introdus eroii intr-un ArrayList pentru a itera cu usurinta prin acestia.
+Clasa abstracta "Hero" care este extinsa/monstenita de clasele de eroi
+implementeaza metode esentiale ale unui erou, cum ar fi metoda de miscare a
+eroului pe harta, leveling up si de aplicare a efectelor over-time (daca a fost
+afectat de spell-urile Ignite, Paralysis sau Slam).
+
+La initializarea fiecarui erou, acesta primeste 2 spell-uri ("primarySpell" si
+"secondarySpell") in functie de tipul eroului. Aceste spell-uri si atributele
+eroilor (HP initial, HP per level, etc) sunt initializate in constructorul
+clasei fiecarui tip de erou.
+
+Pentru gasirea luptelor dintre eroi am iterat pe rand fiecare runda, iar in
+cadrul fiecareia am aplicat move-urile eroilor din runda respectiva, dupa care
+am iterat prin toti eroii cautand pe aceia care sunt inca in viata si care se
+afla pe acelasi land/teren, verificand daca au aceleasi coordonate (row si
+column).
+
+Intr-o lupta fiecare erou aplica asupra celuilalt cele doua spell-uri, iar daca
+unul dintre ei moare, celalalt primeste puncte de experience.
+
+Pentru aplicarea de spell-uri cu diferite modifiere in functie de tipul de erou
+(eroul victima) am folosit Double Dispatch a carei implementare este descrisa
+in urmatoarea sectiune a acestui fisier.
+
+Atunci cand sunt aplicate, unele spell-uri mai aplica victimei si un efect
+over-time care consta in damage over-time (Ignite si Paralysis) sau
+incapacitarea eroului pentru un numar de runde (Paralysis si Slam).
+
+Aceste efecte over-time sunt retinute intr-un ArrayList care apartine fiecarui
+erou si sunt suferite de eroul purtator in fiecare runda si inainte de lupte,
+pana cand efectul acestora dispare.
+
+Dupa ce au fost finalizate toate rundele, se scriu in fisierul de output (cu
+numele precizat de parametrul "args[1]" al metodei main) proprietatile finale
+ale fiecarui erou folosind metoda "printStatus()" din cadrul claselor eroilor.
+
+===============================================================================
+
+    3. Double Dispatch (Bonus-ul temei)
+
+Double Dispatch a fost aplicat pentru interactiunea spell-urilor cu diversele
+tipuri de eroi. Deoarece fiecare spell are un alt race modifier ce depinde
+de tipul eroului victima, double dispatch se poate aplica in urmatorul mod:
+
+- Fiecare clasa spell implementeaza cate o metoda "instantDamage()" pentru
+fiecare tip de erou pe care-l ia ca parametru. Aceasta metoda initializeaza
+race modifier-ul cu modifier-ul corespunzator. Astfel in fiecare clasa spell
+exista 4 metode "instantDamage()", fiecare cu un tip diferit de tip de erou
+ca argument/parametru.
+
+- Fiecare clasa erou implementeaza o metoda "accept()" care accepta ca
+parametru spell-ul. Aceasta metoda apeleaza la randul ei metoda
+"instantDamage(this)" din clasa spell-ului respectiv, si astfel se stabileste
+care race modifier trebuie aplicat corect.
+
+- Astfel, fiecare spell poate avea propriile implementari de interactiuni,
+care pot fi modificate cu usurinta.
+
+===============================================================================
